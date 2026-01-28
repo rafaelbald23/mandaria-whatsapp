@@ -45,4 +45,4 @@ RUN mkdir -p ../Planilhas ../Logs
 EXPOSE 5000
 
 # Comando de inicialização
-CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "app:app", "--bind", "0.0.0.0:5000"]
+CMD ["python", "app.py"]
