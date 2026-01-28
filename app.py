@@ -15,6 +15,7 @@ import time
 from auth import AuthManager
 from utils import carregar_planilha, salvar_resultados, validar_mensagem, validar_numero_telefone, configurar_logger
 from sender_factory import criar_sender
+from api_agente import api_agente
 import config
 import pandas as pd
 from datetime import datetime
@@ -23,6 +24,9 @@ import threading
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'monitoria-whatsapp-robot-secret-key-2026'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Registra blueprint da API do agente
+app.register_blueprint(api_agente)
 
 # Configuração do SocketIO para produção
 socketio = SocketIO(
@@ -482,10 +486,11 @@ def api_remover_cliente(usuario):
 @app.route('/api/enviar-novo', methods=['POST'])
 @login_required
 def api_enviar_novo():
-    """API: Novo sistema de envio (sem planilha)"""
+    """API: Novo sistema de envio (adiciona na fila para agente processar)"""
     try:
         import json
         from werkzeug.utils import secure_filename
+        from api_agente import adicionar_fila
         
         # Recebe dados
         numeros_json = request.form.get('numeros')
@@ -501,53 +506,64 @@ def api_enviar_novo():
         if not numeros or not mensagens:
             return jsonify({'success': False, 'message': 'Adicione números e mensagens'}), 400
         
-        # Salva imagem se houver
-        imagem_path = None
+        # Limpa números
+        numeros_limpos = []
+        for numero in numeros:
+            numero_limpo = ''.join(filter(str.isdigit, numero))
+            if numero_limpo:
+                numeros_limpos.append(numero_limpo)
+        
+        # Salva imagem se houver e gera URL
+        imagem_url = None
         if imagem:
             filename = secure_filename(imagem.filename)
             imagem_path = config.PLANILHAS_DIR / f"img_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
             imagem.save(imagem_path)
+            # URL relativa para o agente baixar
+            imagem_url = f"/static/uploads/{imagem_path.name}"
         
-        # Cria planilha temporária
-        df_data = []
-        for numero in numeros:
-            numero_limpo = ''.join(filter(str.isdigit, numero))
-            if numero_limpo:
-                df_data.append({'Contato': numero_limpo, 'Nome': ''})
-        
-        df = pd.DataFrame(df_data)
-        temp_path = config.PLANILHAS_DIR / f"temp_{session['usuario']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
-        df.to_excel(temp_path, index=False)
-        
-        # Cria sessão de envio
-        session_id = f"{session['usuario']}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        
-        # IMPORTANTE: Cria a sessão ANTES de iniciar a thread
-        active_sessions[session_id] = {
+        # Adiciona na fila
+        envio_data = {
             'usuario': session['usuario'],
-            'total': len(df) * len(mensagens),
-            'processados': 0,
-            'enviados': 0,
-            'falhas': 0,
-            'status': 'iniciando'
+            'numeros': numeros_limpos,
+            'mensagens': mensagens,
+            'imagem': imagem_url
         }
         
-        # Inicia thread de envio
-        thread = threading.Thread(
-            target=processar_envio_novo,
-            args=(session_id, df, mensagens, imagem_path, temp_path),
-            daemon=True
-        )
-        thread.start()
+        # Chama função da API do agente
+        response = adicionar_fila()
+        data = response.get_json()
         
-        # Incrementa contador de envios do cliente
-        auth_manager.incrementar_envios(session['usuario'])
-        
-        return jsonify({
-            'success': True,
-            'session_id': session_id,
-            'message': 'Envio iniciado com sucesso'
-        })
+        if data.get('success'):
+            session_id = data.get('envio_id')
+            
+            # Cria sessão ativa para acompanhamento
+            active_sessions[session_id] = {
+                'usuario': session['usuario'],
+                'total': len(numeros_limpos) * len(mensagens),
+                'processados': 0,
+                'enviados': 0,
+                'falhas': 0,
+                'status': 'aguardando_agente'
+            }
+            
+            # Incrementa contador de envios do cliente
+            auth_manager.incrementar_envios(session['usuario'])
+            
+            # Emite status inicial
+            socketio.emit('status_update', {
+                'session_id': session_id,
+                'status': 'aguardando_agente',
+                'message': 'Aguardando agente local processar...'
+            })
+            
+            return jsonify({
+                'success': True,
+                'session_id': session_id,
+                'message': 'Envio adicionado na fila com sucesso'
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Erro ao adicionar na fila'}), 500
         
     except Exception as e:
         logger.error(f"Erro ao iniciar envio novo: {e}")
