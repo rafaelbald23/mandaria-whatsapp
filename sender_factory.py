@@ -1,5 +1,5 @@
 """
-Factory para criar o sender apropriado (Selenium ou Evolution API)
+Factory para criar o sender apropriado (Selenium ou Baileys)
 """
 
 import os
@@ -11,18 +11,18 @@ def criar_sender():
     """
     Cria o sender apropriado baseado nas variáveis de ambiente
     
-    Se USE_EVOLUTION_API=true, usa Evolution API
+    Se USE_BAILEYS=true ou está no Railway, usa Baileys
     Caso contrário, usa Selenium (para desenvolvimento local)
     """
-    use_evolution = os.environ.get('USE_EVOLUTION_API', 'false').lower() == 'true'
+    use_baileys = os.environ.get('USE_BAILEYS', 'true').lower() == 'true'
     
     # Detecta automaticamente se está no Railway
     is_railway = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RAILWAY_PROJECT_ID')
     
-    if use_evolution or is_railway:
-        logger.info("Usando Evolution API Sender")
-        from evolution_api_sender import EvolutionAPISender
-        return EvolutionAPISender()
+    if use_baileys or is_railway:
+        logger.info("Usando Baileys Sender (100% Web)")
+        from baileys_sender import BaileysSender
+        return BaileysSender()
     else:
         logger.info("Usando Selenium Sender (desenvolvimento local)")
         from whatsapp_sender import WhatsAppSender
