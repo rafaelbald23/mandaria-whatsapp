@@ -908,5 +908,8 @@ if __name__ == '__main__':
     config.PLANILHAS_DIR.mkdir(exist_ok=True)
     config.LOGS_DIR.mkdir(exist_ok=True)
     
-    logger.info("Iniciando servidor web...")
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    # Porta do Railway ou local
+    port = int(os.environ.get('PORT', 5000))
+    
+    logger.info(f"Iniciando servidor web na porta {port}...")
+    socketio.run(app, debug=False, host='0.0.0.0', port=port)
