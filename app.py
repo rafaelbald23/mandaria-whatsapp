@@ -14,7 +14,7 @@ import time
 # Importa módulos locais
 from auth import AuthManager
 from utils import carregar_planilha, salvar_resultados, validar_mensagem, validar_numero_telefone, configurar_logger
-from whatsapp_sender import WhatsAppSender
+from sender_factory import criar_sender
 import config
 import pandas as pd
 from datetime import datetime
@@ -568,7 +568,7 @@ def processar_envio_novo(session_id, planilha, mensagens, imagem_path, temp_path
         })
         
         # Inicializa sender
-        sender = WhatsAppSender()
+        sender = criar_sender()
         if not sender.inicializar_driver():
             raise Exception("Falha ao inicializar navegador")
         
@@ -785,7 +785,7 @@ def processar_envio(session_id, planilha, mensagem, temp_path):
         })
         
         # Inicializa sender
-        sender = WhatsAppSender()
+        sender = criar_sender()
         if not sender.inicializar_driver():
             raise Exception("Falha ao inicializar navegador")
         
