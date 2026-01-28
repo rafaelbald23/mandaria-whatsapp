@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
+import os
 import config
 from utils import configurar_logger, formatar_mensagem_whatsapp
 
@@ -19,9 +20,22 @@ class WhatsAppSender:
         """Inicializa o Chrome WebDriver com configurações otimizadas"""
         try:
             chrome_options = Options()
+            
+            # Detecta se está rodando em ambiente de produção (Railway)
+            is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT')
+            
+            if is_production:
+                logger.info("Modo produção detectado - configurando Chrome headless")
+                chrome_options.add_argument("--headless=new")
+                chrome_options.add_argument("--window-size=1920,1080")
+            
+            # Opções essenciais para Docker/Railway
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-software-rasterizer")
+            chrome_options.add_argument("--disable-extensions")
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
             chrome_options.add_experimental_option('useAutomationExtension', False)
             
