@@ -937,8 +937,13 @@
 
         // Iniciar envio
         async function iniciarEnvio() {
+            console.log('iniciarEnvio chamado');
+            
             const numeros = document.getElementById('numeros').value.trim().split('\n').filter(n => n.trim());
             const imagem = document.getElementById('imagem').files[0];
+
+            console.log('Números:', numeros.length);
+            console.log('Mensagens:', mensagens.length);
 
             // Validações finais
             if (numeros.length === 0) {
@@ -960,12 +965,26 @@
                 return;
             }
 
-            // Conecta socket
+            console.log('Validações OK, iniciando envio...');
+
+            // Conecta socket ANTES de fazer a requisição
             conectarSocket();
+
+            // Mostra modal de status imediatamente
+            const modal = document.getElementById('status-modal');
+            modal.classList.add('active');
+            document.getElementById('status-icon').textContent = '⏳';
+            document.getElementById('status-title').textContent = 'Preparando...';
+            document.getElementById('status-message').textContent = 'Iniciando processo de envio...';
 
             // Mostra progress
             document.getElementById('progress-container').classList.add('active');
-            document.querySelector('.btn-submit').disabled = true;
+            
+            // Desabilita botão
+            const btnSubmit = document.querySelector('.btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.style.opacity = '0.5';
+            btnSubmit.style.cursor = 'not-allowed';
 
             // Prepara dados
             const formData = new FormData();
@@ -975,24 +994,33 @@
                 formData.append('imagem', imagem);
             }
 
+            console.log('Enviando requisição para /api/enviar-novo...');
+
             try {
                 const response = await fetch('/api/enviar-novo', {
                     method: 'POST',
                     body: formData
                 });
 
+                console.log('Response status:', response.status);
+
                 const result = await response.json();
+                console.log('Result:', result);
 
                 if (!result.success) {
                     alert('❌ ' + result.message);
-                    document.querySelector('.btn-submit').disabled = false;
-                    document.getElementById('status-modal').classList.remove('active');
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = '1';
+                    btnSubmit.style.cursor = 'pointer';
+                    modal.classList.remove('active');
                 }
             } catch (error) {
-                alert('❌ Erro ao iniciar envio');
-                console.error(error);
-                document.querySelector('.btn-submit').disabled = false;
-                document.getElementById('status-modal').classList.remove('active');
+                console.error('Erro completo:', error);
+                alert('❌ Erro ao iniciar envio: ' + error.message);
+                btnSubmit.disabled = false;
+                btnSubmit.style.opacity = '1';
+                btnSubmit.style.cursor = 'pointer';
+                modal.classList.remove('active');
             }
         }
 
