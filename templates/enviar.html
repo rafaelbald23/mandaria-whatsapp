@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Mensagens - Robô WhatsApp monitorIA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/monitoria-logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/enviar.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        {% include 'partials/sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1>Enviar Mensagens</h1>
+                    <p>Configure e envie mensagens em massa via WhatsApp</p>
+                </div>
+            </header>
+
+            <!-- Formulário de Envio -->
+            <div class="envio-container">
+                <!-- Passo 1: Upload da Planilha -->
+                <div class="glass-card" id="step1">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div>
+                            <h2>Selecione a Planilha</h2>
+                            <p>Faça upload da planilha com os contatos</p>
+                        </div>
+                    </div>
+
+                    <div class="upload-area" id="uploadArea">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <h3>Arraste o arquivo aqui</h3>
+                        <p>ou clique para selecionar</p>
+                        <input type="file" id="fileInput" accept=".xlsx" hidden>
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            Selecionar Arquivo
+                        </button>
+                    </div>
+
+                    <div id="fileInfo" class="file-info" style="display: none;">
+                        <div class="file-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <div class="file-details">
+                            <p id="fileName"></p>
+                            <span id="fileSize"></span>
+                        </div>
+                        <button class="btn-remove" onclick="removerArquivo()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="previewArea" style="display: none;">
+                        <h3>Preview dos Contatos</h3>
+                        <div class="preview-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Contato</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                        <p class="preview-info">
+                            <strong id="totalContatos">0</strong> contatos encontrados
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Passo 2: Mensagem -->
+                <div class="glass-card" id="step2" style="display: none;">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div>
+                            <h2>Digite a Mensagem</h2>
+                            <p>Use {} para inserir o nome da pessoa</p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mensagem">Mensagem</label>
+                        <textarea 
+                            id="mensagem" 
+                            class="input-field" 
+                            placeholder="Olá {}, tudo bem?&#10;&#10;Temos uma oferta especial para você!"
+                            rows="10"
+                        ></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / 4096 caracteres
+                        </div>
+                    </div>
+
+                    <div class="message-preview glass-card">
+                        <h4>Preview da Mensagem</h4>
+                        <div id="messagePreview" class="preview-content">
+                            Digite sua mensagem para ver o preview...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passo 3: Confirmar e Enviar -->
+                <div class="glass-card" id="step3" style="display: none;">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div>
+                            <h2>Confirmar Envio</h2>
+                            <p>Revise as informações antes de enviar</p>
+                        </div>
+                    </div>
+
+                    <div class="resumo-envio">
+                        <div class="resumo-item">
+                            <span>Total de contatos:</span>
+                            <strong id="resumoTotal">0</strong>
+                        </div>
+                        <div class="resumo-item">
+                            <span>Tamanho da mensagem:</span>
+                            <strong id="resumoTamanho">0 caracteres</strong>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>Certifique-se de que o WhatsApp Web está aberto e pronto para uso.</span>
+                    </div>
+
+                    <button class="btn btn-success btn-enviar" id="btnIniciarEnvio" onclick="iniciarEnvio()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Iniciar Envio
+                    </button>
+                </div>
+
+                <!-- Progresso do Envio -->
+                <div class="glass-card" id="progressArea" style="display: none;">
+                    <div class="step-header">
+                        <div class="step-number">
+                            <div class="spinner"></div>
+                        </div>
+                        <div>
+                            <h2>Enviando Mensagens</h2>
+                            <p id="statusText">Inicializando...</p>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-text">
+                        <span id="progressAtual">0</span> / <span id="progressTotal">0</span> mensagens
+                    </p>
+
+                    <div class="envio-stats">
+                        <div class="stat-item success">
+                            <span>Enviados</span>
+                            <strong id="statEnviados">0</strong>
+                        </div>
+                        <div class="stat-item error">
+                            <span>Falhas</span>
+                            <strong id="statFalhas">0</strong>
+                        </div>
+                    </div>
+
+                    <div id="logArea" class="log-area"></div>
+                </div>
+
+                <!-- Resultado Final -->
+                <div class="glass-card" id="resultArea" style="display: none;">
+                    <div class="result-icon success">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <h2>Envio Concluído!</h2>
+                    <p>As mensagens foram enviadas com sucesso</p>
+
+                    <div class="result-stats">
+                        <div class="result-stat">
+                            <h3 id="resultEnviados">0</h3>
+                            <p>Enviados</p>
+                        </div>
+                        <div class="result-stat">
+                            <h3 id="resultFalhas">0</h3>
+                            <p>Falhas</p>
+                        </div>
+                        <div class="result-stat">
+                            <h3 id="resultTotal">0</h3>
+                            <p>Total</p>
+                        </div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="btn btn-primary" onclick="location.href='/historico'">
+                            Ver Histórico
+                        </button>
+                        <button class="btn btn-outline" onclick="location.reload()">
+                            Novo Envio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/enviar.js') }}"></script>
+</body>
+</html>

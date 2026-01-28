@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico - MandarIA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/monitoria-logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        {% include 'partials/sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1>Histórico de Envios</h1>
+                    <p>Visualize todos os envios anteriores</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-outline" onclick="location.reload()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Atualizar
+                    </button>
+                </div>
+            </header>
+
+            <!-- Lista de Histórico -->
+            <div class="historico-list">
+                {% if resultados %}
+                    {% for resultado in resultados %}
+                    <div class="glass-card historico-item">
+                        <div class="historico-header">
+                            <div class="historico-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="historico-info">
+                                <h3>{{ resultado.arquivo }}</h3>
+                                <p>{{ resultado.data }}</p>
+                            </div>
+                        </div>
+
+                        <div class="historico-stats">
+                            <div class="historico-stat">
+                                <span>Total</span>
+                                <strong>{{ resultado.total }}</strong>
+                            </div>
+                            <div class="historico-stat success">
+                                <span>Enviados</span>
+                                <strong>{{ resultado.enviados }}</strong>
+                            </div>
+                            <div class="historico-stat error">
+                                <span>Falhas</span>
+                                <strong>{{ resultado.falhas }}</strong>
+                            </div>
+                            <div class="historico-stat">
+                                <span>Taxa</span>
+                                <strong>{{ (resultado.enviados / resultado.total * 100) | round(1) }}%</strong>
+                            </div>
+                        </div>
+
+                        <div class="historico-actions">
+                            <a href="/api/download/{{ resultado.arquivo }}" class="btn btn-outline btn-sm">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Baixar
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="glass-card empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M9 11l3 3L22 4"></path>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                        <h2>Nenhum envio encontrado</h2>
+                        <p>Você ainda não realizou nenhum envio</p>
+                        <a href="/enviar" class="btn btn-primary">
+                            Fazer Primeiro Envio
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .historico-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .historico-item {
+            padding: 1.5rem;
+        }
+
+        .historico-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .historico-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .historico-info h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .historico-info p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .historico-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .historico-stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border-radius: 12px;
+        }
+
+        .historico-stat span {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .historico-stat strong {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .historico-stat.success strong {
+            color: var(--success);
+        }
+
+        .historico-stat.error strong {
+            color: var(--error);
+        }
+
+        .historico-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state svg {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,89 @@
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║        ROBÔ WHATSAPP WEB - monitorIA                       ║
+║        Guia de Início Rápido                               ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+
+📌 PASSO A PASSO (3 MINUTOS)
+
+1️⃣  INSTALAR DEPENDÊNCIAS
+   
+   Abra o terminal nesta pasta e execute:
+   
+   instalar_dependencias.bat
+   
+   OU:
+   
+   pip install -r requirements.txt
+
+
+2️⃣  EXECUTAR O SISTEMA
+   
+   python app.py
+   
+   OU:
+   
+   npm run dev
+
+
+3️⃣  ACESSAR NO NAVEGADOR
+   
+   http://localhost:5000
+   
+   Login: admin
+   Senha: admin123
+
+
+═══════════════════════════════════════════════════════════
+
+❌ ERRO: "No module named 'flask'"
+
+   SOLUÇÃO:
+   pip install -r requirements.txt
+
+═══════════════════════════════════════════════════════════
+
+❌ ERRO: "python não é reconhecido"
+
+   SOLUÇÃO:
+   1. Instale Python: https://www.python.org/downloads/
+   2. Marque "Add Python to PATH" durante instalação
+   3. Reinicie o terminal
+
+═══════════════════════════════════════════════════════════
+
+❌ ERRO: "npm não é reconhecido"
+
+   SOLUÇÃO:
+   Use Python direto: python app.py
+
+═══════════════════════════════════════════════════════════
+
+🧪 TESTAR INSTALAÇÃO
+
+   python testar_instalacao.py
+
+═══════════════════════════════════════════════════════════
+
+📚 MAIS AJUDA
+
+   - INICIO.md - Guia completo de início
+   - COMO_EXECUTAR.md - Instruções detalhadas
+   - SOLUCAO_ERROS.md - Solução de problemas
+   - README.md - Visão geral do sistema
+
+═══════════════════════════════════════════════════════════
+
+✅ CHECKLIST
+
+   [ ] Python 3.8+ instalado
+   [ ] Executou: pip install -r requirements.txt
+   [ ] Executou: python app.py
+   [ ] Acessou: http://localhost:5000
+   [ ] Fez login com admin/admin123
+
+═══════════════════════════════════════════════════════════
+
+Desenvolvido por monitorIA - Departamento de T.I
+Versão 3.0.0 - Sistema 100% Web

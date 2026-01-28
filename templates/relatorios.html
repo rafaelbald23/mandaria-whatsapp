@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - MandarIA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/monitoria-logo.png') }}" type="image/png">
+</head>
+<body>
+    {% include 'partials/sidebar.html' %}
+
+    <div class="main-content">
+        <div style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Relatórios Detalhados
+            </h1>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 2rem;">Visualize e exporte relatórios de envios</p>
+
+            <!-- Filtros -->
+            <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    Filtros
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Status</label>
+                        <select id="filtro-status" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white;">
+                            <option value="">Todos</option>
+                            <option value="enviado">Enviados</option>
+                            <option value="falha">Falhas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Buscar Número</label>
+                        <input type="text" id="filtro-numero" placeholder="Ex: 11999999999" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: white;">
+                    </div>
+                    <div style="display: flex; align-items: end; gap: 0.5rem;">
+                        <button onclick="aplicarFiltros()" style="flex: 1; padding: 0.8rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">Filtrar</button>
+                        <button onclick="limparFiltros()" style="padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; font-weight: 600; cursor: pointer;">Limpar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="stat-total">0</div>
+                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">Total</div>
+                </div>
+                <div style="background: rgba(46, 213, 115, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(46, 213, 115, 0.3); border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #2ed573;" id="stat-enviados">0</div>
+                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">Enviados</div>
+                </div>
+                <div style="background: rgba(255, 71, 87, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 71, 87, 0.3); border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; color: #ff4757;" id="stat-falhas">0</div>
+                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">Falhas</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 1.5rem; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="stat-taxa">0%</div>
+                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-top: 0.5rem;">Taxa de Sucesso</div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                <button onclick="exportarCSV()" style="padding: 1rem 2rem; background: rgba(46, 213, 115, 0.2); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.3); border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Exportar CSV
+                </button>
+                <button onclick="exportarEnviados()" style="padding: 1rem 2rem; background: rgba(102, 126, 234, 0.2); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Exportar Enviados
+                </button>
+                <button onclick="exportarFalhas()" style="padding: 1rem 2rem; background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.3); border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Exportar Falhas
+                </button>
+            </div>
+
+            <!-- Tabela -->
+            <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; overflow-x: auto;">
+                <table id="tabela-relatorio" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                            <th style="padding: 1rem; text-align: left; color: rgba(255,255,255,0.8); font-weight: 600;">Número</th>
+                            <th style="padding: 1rem; text-align: left; color: rgba(255,255,255,0.8); font-weight: 600;">Nome</th>
+                            <th style="padding: 1rem; text-align: left; color: rgba(255,255,255,0.8); font-weight: 600;">Status</th>
+                            <th style="padding: 1rem; text-align: left; color: rgba(255,255,255,0.8); font-weight: 600;">Motivo</th>
+                            <th style="padding: 1rem; text-align: left; color: rgba(255,255,255,0.8); font-weight: 600;">Data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-relatorio">
+                        <tr>
+                            <td colspan="5" style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.5);">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dadosCompletos = [];
+        let dadosFiltrados = [];
+
+        // Carrega dados ao iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDados();
+        });
+
+        async function carregarDados() {
+            try {
+                const response = await fetch('/api/relatorios/dados');
+                const data = await response.json();
+                
+                if (data.success) {
+                    dadosCompletos = data.dados;
+                    dadosFiltrados = [...dadosCompletos];
+                    renderizarTabela();
+                    atualizarEstatisticas();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        function renderizarTabela() {
+            const tbody = document.getElementById('tbody-relatorio');
+            
+            if (dadosFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.5);">Nenhum registro encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = dadosFiltrados.map(item => {
+                const statusClass = item.status === 'Enviado' ? 'success' : 'error';
+                const statusColor = item.status === 'Enviado' ? '#2ed573' : '#ff4757';
+                
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 1rem; color: white;">${item.contato}</td>
+                        <td style="padding: 1rem; color: rgba(255,255,255,0.8);">${item.nome || '-'}</td>
+                        <td style="padding: 1rem;">
+                            <span style="padding: 0.3rem 0.8rem; background: rgba(${item.status === 'Enviado' ? '46, 213, 115' : '255, 71, 87'}, 0.2); color: ${statusColor}; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                ${item.status}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">${item.motivo || '-'}</td>
+                        <td style="padding: 1rem; color: rgba(255,255,255,0.6); font-size: 0.9rem;">${item.data || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function atualizarEstatisticas() {
+            const total = dadosFiltrados.length;
+            const enviados = dadosFiltrados.filter(d => d.status === 'Enviado').length;
+            const falhas = total - enviados;
+            const taxa = total > 0 ? ((enviados / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-enviados').textContent = enviados;
+            document.getElementById('stat-falhas').textContent = falhas;
+            document.getElementById('stat-taxa').textContent = taxa + '%';
+        }
+
+        function aplicarFiltros() {
+            const status = document.getElementById('filtro-status').value;
+            const numero = document.getElementById('filtro-numero').value.trim();
+
+            dadosFiltrados = dadosCompletos.filter(item => {
+                let match = true;
+
+                if (status) {
+                    match = match && item.status.toLowerCase() === status;
+                }
+
+                if (numero) {
+                    match = match && item.contato.includes(numero);
+                }
+
+                return match;
+            });
+
+            renderizarTabela();
+            atualizarEstatisticas();
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtro-status').value = '';
+            document.getElementById('filtro-numero').value = '';
+            dadosFiltrados = [...dadosCompletos];
+            renderizarTabela();
+            atualizarEstatisticas();
+        }
+
+        function exportarCSV() {
+            exportarParaCSV(dadosFiltrados, 'relatorio_completo.csv');
+        }
+
+        function exportarEnviados() {
+            const enviados = dadosFiltrados.filter(d => d.status === 'Enviado');
+            exportarParaCSV(enviados, 'relatorio_enviados.csv');
+        }
+
+        function exportarFalhas() {
+            const falhas = dadosFiltrados.filter(d => d.status !== 'Enviado');
+            exportarParaCSV(falhas, 'relatorio_falhas.csv');
+        }
+
+        function exportarParaCSV(dados, filename) {
+            if (dados.length === 0) {
+                alert('Nenhum dado para exportar');
+                return;
+            }
+
+            // Cabeçalho
+            let csv = 'Número,Nome,Status,Motivo,Data\n';
+
+            // Dados
+            dados.forEach(item => {
+                csv += `${item.contato},${item.nome || ''},${item.status},${item.motivo || ''},${item.data || ''}\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+
+            alert(`Arquivo ${filename} exportado com sucesso!`);
+        }
+    </script>
+</body>
+</html>

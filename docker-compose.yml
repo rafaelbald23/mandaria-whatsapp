@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: robo-whatsapp-web
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-chave-padrao-desenvolvimento}
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-False}
+    volumes:
+      - ../Planilhas:/app/Planilhas
+      - ../Logs:/app/Logs
+      - chrome_profile:/app/chrome_profile
+    restart: unless-stopped
+    networks:
+      - robo-network
+
+networks:
+  robo-network:
+    driver: bridge
+
+volumes:
+  chrome_profile:

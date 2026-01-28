@@ -1,0 +1,19 @@
+# Robô WhatsApp Web - Dependências
+
+# Backend
+Flask>=3.0.0
+Flask-SocketIO>=5.3.0
+python-socketio>=5.10.0
+python-engineio>=4.8.0
+
+# Robô WhatsApp (core)
+selenium>=4.16.0
+pandas>=2.2.0
+openpyxl>=3.1.0
+Pillow>=10.0.0
+
+# Servidor WSGI
+eventlet>=0.33.0
+
+# Utilitários
+python-dotenv>=1.0.0

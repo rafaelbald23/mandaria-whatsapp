@@ -1,0 +1,29 @@
+{
+  "name": "robo-whatsapp-monitoria",
+  "version": "3.0.0",
+  "description": "Sistema de Disparo WhatsApp - monitorIA",
+  "main": "app.py",
+  "scripts": {
+    "dev": "dev.bat",
+    "start": "python app.py",
+    "setup": "setup.bat",
+    "prod": "gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:5000",
+    "install": "pip install -r requirements.txt",
+    "test": "python -m pytest tests/",
+    "lint": "flake8 .",
+    "format": "black ."
+  },
+  "keywords": [
+    "whatsapp",
+    "automation",
+    "monitoria",
+    "flask",
+    "selenium"
+  ],
+  "author": "monitorIA - Departamento de T.I",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/monitoria/robo-whatsapp"
+  }
+}

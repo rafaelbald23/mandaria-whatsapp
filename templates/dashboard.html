@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MandarIA</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/monitoria-logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        {% include 'partials/sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                    <p>Bem-vindo(a), <strong>{{ usuario }}</strong>! Visão geral do seu negócio.</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-outline" onclick="location.reload()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        Atualizar
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalEnviados">-</h3>
+                        <p>Mensagens Enviadas</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon error">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalFalhas">-</h3>
+                        <p>Falhas no Envio</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon info">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalEnvios">-</h3>
+                        <p>Total de Envios</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="taxaSucesso">-</h3>
+                        <p>Taxa de Sucesso</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2>Ações Rápidas</h2>
+                <div class="actions-grid">
+                    <a href="/enviar" class="action-card glass-card">
+                        <div class="action-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </div>
+                        <h3>Enviar Mensagens</h3>
+                        <p>Inicie um novo disparo de mensagens em massa</p>
+                    </a>
+
+                    <a href="/historico" class="action-card glass-card">
+                        <div class="action-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M3 3h18v18H3zM21 9H3M21 15H3M12 3v18"></path>
+                            </svg>
+                        </div>
+                        <h3>Histórico</h3>
+                        <p>Visualize o histórico de envios anteriores</p>
+                    </a>
+
+                    <a href="/configuracoes" class="action-card glass-card">
+                        <div class="action-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 1v6m0 6v6m-6-6h6m6 0h-6"></path>
+                            </svg>
+                        </div>
+                        <h3>Configurações</h3>
+                        <p>Ajuste as configurações do sistema</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h2>Atividade Recente</h2>
+                <div class="activity-list glass-card">
+                    <div class="activity-item">
+                        <div class="activity-icon success">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>Sistema iniciado</strong></p>
+                            <span>Bem-vindo ao MandarIA v3.0</span>
+                        </div>
+                        <div class="activity-time">Agora</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Carrega estatísticas
+        async function carregarEstatisticas() {
+            try {
+                const response = await fetch('/api/estatisticas');
+                const data = await response.json();
+                
+                document.getElementById('totalEnviados').textContent = data.total_enviados.toLocaleString('pt-BR');
+                document.getElementById('totalFalhas').textContent = data.total_falhas.toLocaleString('pt-BR');
+                document.getElementById('totalEnvios').textContent = data.total_envios.toLocaleString('pt-BR');
+                document.getElementById('taxaSucesso').textContent = data.taxa_sucesso.toFixed(1) + '%';
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carrega ao iniciar
+        carregarEstatisticas();
+
+        // Atualiza a cada 30 segundos
+        setInterval(carregarEstatisticas, 30000);
+    </script>
+</body>
+</html>
