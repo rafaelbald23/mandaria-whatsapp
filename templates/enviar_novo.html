@@ -1007,8 +1007,34 @@
                 const result = await response.json();
                 console.log('Result:', result);
 
-                if (!result.success) {
-                    alert('❌ ' + result.message);
+                if (result.success) {
+                    // Se retornou sucesso e precisa abrir o agente
+                    if (result.abrir_agente) {
+                        // Tenta abrir o agente local
+                        try {
+                            // Cria um link invisível para tentar abrir o arquivo .bat
+                            const link = document.createElement('a');
+                            link.href = 'file:///C:/MandarIA/iniciar_agente.bat';
+                            link.click();
+                        } catch (e) {
+                            console.log('Não foi possível abrir automaticamente');
+                        }
+                        
+                        // Mostra instruções
+                        document.getElementById('status-message').innerHTML = `
+                            <strong>Envio adicionado na fila!</strong><br><br>
+                            <div style="background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 10px; padding: 1rem; margin-top: 1rem; text-align: left;">
+                                <strong style="color: #ffc107;">⚠️ ATENÇÃO:</strong><br>
+                                Para processar o envio, você precisa iniciar o Agente Local:<br><br>
+                                1. Abra a pasta <code>C:\\MandarIA</code><br>
+                                2. Clique duas vezes em <code>iniciar_agente.bat</code><br>
+                                3. Escaneie o QR Code do WhatsApp<br><br>
+                                O agente vai processar automaticamente!
+                            </div>
+                        `;
+                    }
+                } else {
+                    alert(result.message);
                     btnSubmit.disabled = false;
                     btnSubmit.style.opacity = '1';
                     btnSubmit.style.cursor = 'pointer';
@@ -1016,7 +1042,7 @@
                 }
             } catch (error) {
                 console.error('Erro completo:', error);
-                alert('❌ Erro ao iniciar envio: ' + error.message);
+                alert('Erro ao iniciar envio: ' + error.message);
                 btnSubmit.disabled = false;
                 btnSubmit.style.opacity = '1';
                 btnSubmit.style.cursor = 'pointer';

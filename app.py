@@ -564,7 +564,8 @@ def api_enviar_novo():
         return jsonify({
             'success': True,
             'session_id': envio_id,
-            'message': 'Envio adicionado na fila com sucesso'
+            'message': 'Envio adicionado na fila com sucesso',
+            'abrir_agente': True  # Sinaliza para abrir o agente
         })
         
     except Exception as e:
