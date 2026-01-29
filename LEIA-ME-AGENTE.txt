@@ -1,0 +1,108 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   MandarIA - Agente Local v3.1                               ║
+║   Desenvolvido por MonitorIA                                 ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+INSTALAÇÃO
+==========
+
+1. Execute: instalar_agente.bat
+   - Instala todas as dependências necessárias
+   - Configura o agente com URL do servidor e API Key
+
+2. Execute: iniciar_agente.bat
+   - Inicia o agente local
+   - Conecta ao WhatsApp Web
+   - Processa envios da fila
+
+
+REQUISITOS
+==========
+
+- Python 3.11 ou superior
+- Google Chrome instalado
+- Conexão com internet
+
+
+CONFIGURAÇÃO
+============
+
+Durante a instalação, você precisará informar:
+
+1. URL do Servidor
+   Exemplo: https://mandaria.up.railway.app
+
+2. Chave de API
+   Fornecida pelo administrador do sistema
+
+
+COMO USAR
+=========
+
+1. Acesse o sistema web (Railway)
+2. Faça login com suas credenciais
+3. Crie um novo envio (planilha + mensagens)
+4. Clique em "Iniciar Envio"
+5. Execute o iniciar_agente.bat
+6. Escaneie o QR Code do WhatsApp
+7. Aguarde o processamento
+
+
+ESTRUTURA DE PASTAS
+===================
+
+MandarIA-Agente-v3.1/
+├── agente_local.py          # Agente principal
+├── whatsapp_sender.py       # Envio de mensagens
+├── utils.py                 # Utilitários
+├── config.py                # Configurações
+├── requirements.txt         # Dependências Python
+├── instalar_agente.bat      # Instalador
+├── iniciar_agente.bat       # Inicializador
+├── LEIA-ME.txt             # Este arquivo
+├── Planilhas/              # Planilhas temporárias (criada automaticamente)
+├── Logs/                   # Logs do sistema (criada automaticamente)
+└── chrome_profile/         # Perfil do Chrome (criada automaticamente)
+
+
+LOGS
+====
+
+Os logs são salvos em: Logs/agente_local_AAAAMMDD.log
+
+
+SUPORTE
+=======
+
+Em caso de problemas:
+
+1. Verifique os logs em Logs/
+2. Certifique-se que o Chrome está instalado
+3. Verifique sua conexão com internet
+4. Confirme que a URL do servidor está correta
+5. Verifique se a API Key está válida
+
+
+DICAS
+=====
+
+- Mantenha a janela do agente aberta durante os envios
+- Não feche o navegador Chrome que abre automaticamente
+- O agente verifica a fila a cada 5 segundos
+- Você pode processar múltiplos envios sequencialmente
+
+
+VERSÃO
+======
+
+v3.1 - Janeiro 2026
+- Sistema híbrido Web + Agente Local
+- Suporte a múltiplas mensagens
+- Suporte a imagens
+- Logs detalhados
+- Configuração simplificada
+
+
+Desenvolvido com ❤️ por MonitorIA
