@@ -490,7 +490,6 @@ def api_enviar_novo():
     try:
         import json
         from werkzeug.utils import secure_filename
-        from api_agente import adicionar_fila
         
         # Recebe dados
         numeros_json = request.form.get('numeros')
@@ -513,60 +512,65 @@ def api_enviar_novo():
             if numero_limpo:
                 numeros_limpos.append(numero_limpo)
         
-        # Salva imagem se houver e gera URL
-        imagem_url = None
+        # Salva imagem se houver
+        imagem_path = None
         if imagem:
             filename = secure_filename(imagem.filename)
             imagem_path = config.PLANILHAS_DIR / f"img_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
             imagem.save(imagem_path)
-            # URL relativa para o agente baixar
-            imagem_url = f"/static/uploads/{imagem_path.name}"
+            imagem_path = str(imagem_path.absolute())
         
-        # Adiciona na fila
-        envio_data = {
+        # Adiciona na fila manualmente
+        from api_agente import carregar_fila, salvar_fila
+        import uuid
+        
+        envio_id = str(uuid.uuid4())
+        envio = {
+            'id': envio_id,
             'usuario': session['usuario'],
             'numeros': numeros_limpos,
             'mensagens': mensagens,
-            'imagem': imagem_url
+            'imagem': imagem_path,
+            'status': 'pendente',
+            'criado_em': datetime.now().isoformat()
         }
         
-        # Chama função da API do agente
-        response = adicionar_fila()
-        data = response.get_json()
+        fila = carregar_fila()
+        fila.append(envio)
+        salvar_fila(fila)
         
-        if data.get('success'):
-            session_id = data.get('envio_id')
-            
-            # Cria sessão ativa para acompanhamento
-            active_sessions[session_id] = {
-                'usuario': session['usuario'],
-                'total': len(numeros_limpos) * len(mensagens),
-                'processados': 0,
-                'enviados': 0,
-                'falhas': 0,
-                'status': 'aguardando_agente'
-            }
-            
-            # Incrementa contador de envios do cliente
-            auth_manager.incrementar_envios(session['usuario'])
-            
-            # Emite status inicial
-            socketio.emit('status_update', {
-                'session_id': session_id,
-                'status': 'aguardando_agente',
-                'message': 'Aguardando agente local processar...'
-            })
-            
-            return jsonify({
-                'success': True,
-                'session_id': session_id,
-                'message': 'Envio adicionado na fila com sucesso'
-            })
-        else:
-            return jsonify({'success': False, 'message': 'Erro ao adicionar na fila'}), 500
+        # Cria sessão ativa para acompanhamento
+        active_sessions[envio_id] = {
+            'usuario': session['usuario'],
+            'total': len(numeros_limpos) * len(mensagens),
+            'processados': 0,
+            'enviados': 0,
+            'falhas': 0,
+            'status': 'aguardando_agente'
+        }
+        
+        # Incrementa contador de envios do cliente
+        auth_manager.incrementar_envios(session['usuario'])
+        
+        # Emite status inicial
+        socketio.emit('status_update', {
+            'session_id': envio_id,
+            'status': 'aguardando_agente',
+            'message': 'Aguardando agente local processar...'
+        })
+        
+        logger.info(f"Envio {envio_id} adicionado na fila - {len(numeros_limpos)} números, {len(mensagens)} mensagens")
+        
+        return jsonify({
+            'success': True,
+            'session_id': envio_id,
+            'message': 'Envio adicionado na fila com sucesso'
+        })
         
     except Exception as e:
         logger.error(f"Erro ao iniciar envio novo: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 def processar_envio_novo(session_id, planilha, mensagens, imagem_path, temp_path):
